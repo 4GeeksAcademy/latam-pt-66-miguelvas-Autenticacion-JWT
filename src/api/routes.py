@@ -36,3 +36,22 @@ def login():
     # Crear token si el usuario existe
     access_token = create_access_token(identity=str(user.id))
     return jsonify({"access_token": access_token, "user_id": user.id}), 200
+
+
+@api.route('/private', methods=['GET'])
+@jwt_required()
+def get_private_data():
+    # Extraemos el ID del usuario que guardamos en el token durante el login
+    current_user_id = get_jwt_identity()
+
+    # Buscamos al usuario en la base de datos usando ese ID
+    user = User.query.get(current_user_id)
+
+    if user is None:
+        return jsonify({"message": "Usuario no encontrado"}), 404
+
+    # Retornamos el email, que es exactamente lo que Private.jsx está esperando para mostrar: {userData.email}
+    return jsonify({
+        "message": "Acceso concedido",
+        "email": user.email
+    }), 200
